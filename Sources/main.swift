@@ -9,11 +9,13 @@ drop.get("hello") { request in
     return "Hello World!"
 }
 
-typealias Username = String
-typealias Payload = String
-typealias Payloads = [Payload]
+//typealias Username = String
+//typealias Payload = String
+//typealias Payloads = [Payload]
 
-fileprivate var connections = [Username : Payloads]()
+//fileprivate var connections = [Username : Payloads]()
+
+fileprivate var matches: [String: Match] = [:]
 
 drop.socket("ws") { req, ws in
     // ping the socket to keep it open
@@ -26,29 +28,45 @@ drop.socket("ws") { req, ws in
 
     ws.onText = { ws, text in
         // Convert text from String to JSON.
-        let json = try JSON(bytes: Array(text.utf8))
+        do {
+            let json = try JSON(bytes: Array(text.utf8))
+            let match = try Match.decode(jsonMatchInit: json)
 
-        // Save username and payload to a dictionary.
-        if let username = json.object?["username"]?.string,
-            let payload = json.object?["payload"]?.string {
-
-            // Save payload.
-            if connections[username]?.append(payload) == nil {
-                connections[username] = [payload]
+            // If a match with the same name already exists, then combine the two matches.
+            if let existingMatch = matches[match.name] {
+                matches[match.name] = try Match.combine(matches: [existingMatch, match])
+            } else {
+                matches[match.name] = match
             }
+        } catch {
+            print("unable to append matches")
         }
 
-        let outgoingJson = try JSON(node: [
-            "username": "test",
-            "message": "testing"
-            ])
+        print("match successfully registered! \(matches)")
 
-        try ws.send(outgoingJson)
-    }
+        // Save username and payload to a dictionary.
+//        if let username = json.object?["username"]?.string,
+//            let payload = json.object?["payload"]?.string {
+//
+//            // Save payload.
+//            if connections[username]?.append(payload) == nil {
+//                connections[username] = [payload]
+//            }
+//        }
 
-    ws.onClose = { ws, code, reason, clean in
-        print("Closed: \(ws), \(code), \(reason), \(clean)")
+//        let outgoingJson = try JSON(node: [
+//            "username": "test",
+//            "message": "testing"
+//            ])
+//
+//        try ws.send(outgoingJson)
+//    }
+//
+//    ws.onClose = { ws, code, reason, clean in
+//        print("Closed: \(ws), \(code), \(reason), \(clean)")
     }
 }
+
+// transform json to something usable -
 
 drop.run()
