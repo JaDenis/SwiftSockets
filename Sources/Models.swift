@@ -33,7 +33,7 @@ class Player {
     /// What is the player's name?
     let name: String
 
-    /// Cumulative history of moves
+    /// Cumulative history of moves.
     let moveHistory: [PlayerAction]
 
     /// Convenience variable to calculate player charges.
