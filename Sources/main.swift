@@ -4,6 +4,7 @@ import Foundation
 
 let drop = Droplet()
 
+// Test that the droplet is running.
 drop.get("hello") { request in
     return "Hello World!"
 }
@@ -15,8 +16,6 @@ typealias Payloads = [Payload]
 fileprivate var connections = [Username : Payloads]()
 
 drop.socket("ws") { req, ws in
-    print("New WebSocket connected: \(ws)")
-    print("Websocket: \(req)")
     // ping the socket to keep it open
     try background {
         while ws.state == .open {
@@ -28,7 +27,6 @@ drop.socket("ws") { req, ws in
     ws.onText = { ws, text in
         // Convert text from String to JSON.
         let json = try JSON(bytes: Array(text.utf8))
-        print("json: ", json)
 
         // Save username and payload to a dictionary.
         if let username = json.object?["username"]?.string,
