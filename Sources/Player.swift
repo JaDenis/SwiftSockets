@@ -28,4 +28,17 @@ class Player {
     func add(_ playerAction: PlayerAction) -> Player {
         return Player(name: name, moveHistory: [playerAction] + moveHistory)
     }
+public enum PlayerError: Error {
+    case jsonInvalidKeys
+    case matchCombineError
+    case invalidTurnNumber
+    case invalidUsernameOrMatchName
+}
+
+// TODO: Delete this shit.
+public enum MatchError: Error {
+    case jsonInvalidKeys
+    case matchCombineError
+    case invalidTurnNumber
+    case invalidUsername
 }
