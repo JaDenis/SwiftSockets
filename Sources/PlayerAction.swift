@@ -9,10 +9,10 @@ enum PlayerAction {
 
     static func decode(fromStr str: String) -> PlayerAction? {
         switch str {
-        case "block": return .block
-        case "charge": return .charge
-        case "shoot": return .shoot
-        case "steal": return .steal
+        case "Block": return .block
+        case "Charge": return .charge
+        case "Shoot": return .shoot
+        case "Steal": return .steal
         default: return nil
         }
     }
