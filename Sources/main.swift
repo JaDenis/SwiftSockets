@@ -57,6 +57,14 @@ drop.socket("ws") { req, ws in
                 if matches[newPlayer.matchID]?.append(uuid) == nil {
                     matches[newPlayer.matchID] = [uuid]
                 }
+
+                let outgoingJson = try JSON(node: [
+                    "uuid": uuid
+                    ])
+
+                try ws.send(outgoingJson)
+                print("outgoing: \(outgoingJson)")
+
             }
         } catch {
             print("there was an error.")
