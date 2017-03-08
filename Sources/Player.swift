@@ -23,12 +23,16 @@ struct Player {
         return 1
     }
 
+    let health: Int
+
     init(name: String, matchID: String, uuid: Player.UUID, socket: WebSocket) {
         self.name = name
         self.matchID = matchID
         self.socket = socket
         self.uuid = uuid
         self.moveHistory = []
+        // TODO: Placeholder
+        self.health = 5
     }
 
     init(name: String,
@@ -41,11 +45,13 @@ struct Player {
             self.matchID = matchID
             self.socket = socket
             self.moveHistory = moveHistory
+            // TODO: Placeholder
+            self.health = 5
     }
 
     // TODO: Fill this in later.
     func calculateHealth(vsPlayer player: Player) -> Int {
-        return 0
+        return 5
     }
 
     static func decodeUUIDAndPlayerAction(fromJSON json: JSON) -> (Player.UUID, PlayerAction)?  {
@@ -55,6 +61,14 @@ struct Player {
                 return nil
         }
         return (uuid, action)
+    }
+
+    func encodePlayerToJsonPlayer() -> JSON {
+        return JsonPlayer(uuid: self.uuid,
+                          username: self.name,
+                          charges: self.charges,
+                          health: self.health,
+                          actionHistory: self.moveHistory).encodeToJson()
     }
 
     /// Decode a new player from JSON.
@@ -74,6 +88,36 @@ struct Player {
                       matchID: self.matchID,
                       socket: socket,
                       moveHistory: self.moveHistory + [playerAction])
+    }
+}
+
+//type alias Player =
+//    { uuid: String
+//        , username: String
+//        , charges: Int
+//        , health: Int
+//        , actionHistory: List PlayerAction
+//}
+
+struct JsonPlayer {
+    let uuid: Player.UUID
+    let username: String
+    let charges: Int
+    let health: Int
+    let actionHistory: [PlayerAction]
+
+    func encodeToJson() -> JSON {
+//        JSON(["uuid": Node(self.uuid)])
+
+        let json = try! JSON(node: [
+            "uuid": self.uuid,
+            "username": self.username,
+            "charges": "\(self.charges)",
+            "health": "\(self.health)",
+            "actionHistory": "\(self.actionHistory)"
+            ])
+
+        return json
     }
 }
 

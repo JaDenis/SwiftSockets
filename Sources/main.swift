@@ -42,6 +42,8 @@ drop.socket("ws") { req, ws in
         do {
             let json = try JSON(bytes: Array(text.utf8))
 
+            print(json)
+
             // If we receive a uuid and action, then add that action to the player's move history.
             if let (uuid, action) = Player.decodeUUIDAndPlayerAction(fromJSON: json),
                 let player = players[uuid] {
@@ -57,22 +59,23 @@ drop.socket("ws") { req, ws in
                 if matches[newPlayer.matchID]?.append(uuid) == nil {
                     matches[newPlayer.matchID] = [uuid]
                 }
-
-                let outgoingJson = try JSON(node: [
-                    "uuid": uuid
-                    ])
+                let outgoingJson = newPlayer.encodePlayerToJsonPlayer()
 
                 try ws.send(outgoingJson)
                 print("outgoing: \(outgoingJson)")
 
+                if matches[newPlayer.matchID]?.count ?? 0 > 1 {
+                    // We need to send relevant information for these dudes to play a game.
+                    // name, health, charges, new move
+                }
             }
         } catch {
             print("there was an error.")
         }
 
-        print("players: \(players)")
-        print()
-        print("matches: \(matches)")
+//        print("players: \(players)")
+//        print()
+//        print("matches: \(matches)")
         print()
     }
 }
