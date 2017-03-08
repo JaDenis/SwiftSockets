@@ -7,3 +7,9 @@ extension WebSocket {
         try send(js.string)
     }
 }
+
+extension JSON {
+    func decode(key: String) -> String? {
+        return self.object?[key]?.string
+    }
+}
