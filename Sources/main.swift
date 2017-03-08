@@ -15,9 +15,20 @@ drop.get("hello") { request in
 
 //fileprivate var connections = [Username : Payloads]()
 
-fileprivate var matches: [String: Match] = [:]
+typealias MatchName = String
+
+/// Track matches based on match name.
+fileprivate var matches: [MatchName: [Player.UUID]] = [:]
+
+/// Track players based on username.
+fileprivate var players: [Player.UUID: Player] = [:]
+
+func readThe(json: JSON) {
+
+}
 
 drop.socket("ws") { req, ws in
+
     // ping the socket to keep it open
     try background {
         while ws.state == .open {
@@ -30,19 +41,48 @@ drop.socket("ws") { req, ws in
         // Convert text from String to JSON.
         do {
             let json = try JSON(bytes: Array(text.utf8))
-            let match = try Match.decode(jsonMatchInit: json)
 
-            // If a match with the same name already exists, then combine the two matches.
-            if let existingMatch = matches[match.name] {
-                matches[match.name] = try Match.combine(matches: [existingMatch, match])
+            // If we receive a uuid and action, then add that action to the player's move history.
+            if let (uuid, action) = Player.decodeUUIDAndPlayerAction(fromJSON: json),
+                let player = players[uuid] {
+                players[uuid] = player.add(playerAction: action, socket: ws)
+
+            // If we don't receive a uuid, create a new player and add that to the match.
             } else {
-                matches[match.name] = match
+                let uuid = String.random()
+                let newPlayer = try Player.initNewPlayer(fromJSON: json, uuid: uuid, socket: ws)
+                players[uuid] = newPlayer
+
+                // Track matches.
+                if matches[newPlayer.matchID]?.append(uuid) == nil {
+                    matches[newPlayer.matchID] = [uuid]
+                }
             }
         } catch {
-            print("unable to append matches")
+            print("there was an error.")
         }
 
-        print("match successfully registered! \(matches)")
+        print("players: \(players)")
+        print()
+        print("matches: \(matches)")
+        print()
+    }
+}
+
+            // If a match with the same name already exists, then combine the two matches.
+//            if let existingMatch = matches[match.name] {
+//                matches[match.name] = try Match.combine(matches: [existingMatch, match])
+//            } else {
+//                matches[match.name] = match
+//            }
+//        } catch {
+//            // TODO: Process error messages and send back to client.
+//            print("unable to append matches")
+//        }
+//
+//        print("matches: \(matches)")
+
+
 
         // Save username and payload to a dictionary.
 //        if let username = json.object?["username"]?.string,
@@ -64,8 +104,8 @@ drop.socket("ws") { req, ws in
 //
 //    ws.onClose = { ws, code, reason, clean in
 //        print("Closed: \(ws), \(code), \(reason), \(clean)")
-    }
-}
+//    }
+//}
 
 // transform json to something usable -
 
