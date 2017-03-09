@@ -6,6 +6,12 @@ extension WebSocket {
         let js = try json.makeBytes()
         try send(js.string)
     }
+
+    func send(_ jsonArray: [JSON]) throws {
+        for json in jsonArray {
+            try send(json)
+        }
+    }
 }
 
 extension JSON {
