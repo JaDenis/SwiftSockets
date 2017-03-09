@@ -42,31 +42,52 @@ drop.socket("ws") { req, ws in
         do {
             let json = try JSON(bytes: Array(text.utf8))
 
-            print(json)
+            print("received json: \(json)")
 
             // If we receive a uuid and action, then add that action to the player's move history.
             if let (uuid, action) = Player.decodeUUIDAndPlayerAction(fromJSON: json),
                 let player = players[uuid] {
                 players[uuid] = player.add(playerAction: action, socket: ws)
 
+                //TODO: Notify all players of the updated action.
+
             // If we don't receive a uuid, create a new player and add that to the match.
             } else {
                 let uuid = String.random()
                 let newPlayer = try Player.initNewPlayer(fromJSON: json, uuid: uuid, socket: ws)
+                let matchID = newPlayer.matchID
                 players[uuid] = newPlayer
 
                 // Track matches.
-                if matches[newPlayer.matchID]?.append(uuid) == nil {
-                    matches[newPlayer.matchID] = [uuid]
+                if matches[matchID]?.append(uuid) == nil {
+                    matches[matchID] = [uuid]
                 }
-                let outgoingJson = newPlayer.encodePlayerToJsonPlayer()
 
-                try ws.send(outgoingJson)
-                print("outgoing: \(outgoingJson)")
+                // We need to send info on the new player to all players in the match.
 
-                if matches[newPlayer.matchID]?.count ?? 0 > 1 {
-                    // We need to send relevant information for these dudes to play a game.
-                    // name, health, charges, new move
+                // Use the match name to find the player UUIDs.
+                if let matchPlayerUUIDs = matches[matchID] {
+
+                    // TODO: Use error handling.
+                    let matchPlayers = matchPlayerUUIDs.map { players[$0]! }
+
+                    // Encode all players.
+                    let playerJson = matchPlayers.map { $0.encodePlayerToJsonPlayer() }
+
+                    // Encode the new player.
+                    let newPlayerJson = newPlayer.encodePlayerToJsonPlayer()
+
+                    // New player information must be in the first position.
+                    let jsonMessages = [newPlayerJson] + playerJson
+
+                    // Send out new player details to each websocket connection.
+                    for player in matchPlayers {
+                        // TODO: Potential race condition? What if many new players join at the same time? How does vapor deal with that?
+                        try player.socket.send(jsonMessages)
+                    }
+
+                    print("sent to \(matchPlayers.count) clients:")
+                    print("outgoingjson: \(newPlayerJson)")
                 }
             }
         } catch {
