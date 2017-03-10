@@ -17,14 +17,54 @@ drop.get("hello") { request in
 
 typealias MatchName = String
 
+// TODO: Move this into a struct to track game state.
 /// Track matches based on match name.
 fileprivate var matches: [MatchName: [Player.UUID]] = [:]
 
 /// Track players based on username.
 fileprivate var players: [Player.UUID: Player] = [:]
 
-func readThe(json: JSON) {
 
+// TODO: Support multiple players.
+/**
+Calculate health and charges for two players based on their collective move history.
+Output is `(p1Health, p2Health, p1Charge, p2Charge)`.
+ */
+func calculateHealthAndCharges(p1: Player, p2: Player) -> (Int, Int, Int, Int) {
+    let combinedHistory = Array(zip(p1.moveHistory, p2.moveHistory))
+
+    let charges = combinedHistory.reduce((0,0,0,0)) { (total, tup) in
+        // Determine charges and health for this round.
+        let (p1m, p2m) = tup
+        var (p1h, p2h, p1c, p2c) = total
+
+        if p1m == .charge && p2m != .steal { p1c += 1 }
+        if p2m == .charge && p1m != .steal { p2c += 1 }
+        if p1m == .shoot { p1c -= 1 }
+        if p2m == .shoot { p2c -= 1 }
+        if p1m == .charge && p2m == .steal { p2c += 1 }
+        if p1m == .steal && p2m == .charge { p1c += 1 }
+
+        if p1m == .shoot {
+            if p2m == .reflect {
+                p1h -= 1
+            } else if p2m != .block && p2m != .shoot {
+                p2h -= 1
+            }
+        }
+
+        if p2m == .shoot {
+            if p1m == .reflect {
+                p2h -= 1
+            } else if p1m != .block && p1m != .shoot {
+                p1h -= 1
+            }
+        }
+
+        return (p1h, p2h, p1c, p2c)
+    }
+
+    return charges
 }
 
 drop.socket("ws") { req, ws in
@@ -47,7 +87,7 @@ drop.socket("ws") { req, ws in
             // If we receive a uuid and action, then add that action to the player's move history.
             if let (uuid, action) = Player.decodeUUIDAndPlayerAction(fromJSON: json),
                 let player = players[uuid] {
-                players[uuid] = player.add(playerAction: action, socket: ws)
+                    players[uuid] = player.add(playerAction: action, socket: ws)
 
                 //TODO: Notify all players of the updated action.
 
