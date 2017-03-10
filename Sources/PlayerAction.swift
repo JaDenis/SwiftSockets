@@ -16,4 +16,24 @@ enum PlayerAction {
         default: return nil
         }
     }
+
+    static func encode(_ actions: [PlayerAction]) -> String {
+        var str = "["
+        for action in actions {
+            str = str + PlayerAction.encode(action) + ","
+        }
+        str = String(str.characters.dropLast())
+        str = str + "]"
+        return str
+    }
+
+    static func encode(_ action: PlayerAction) -> String {
+        switch action {
+        case .block: return "\"Block\""
+        case .charge: return "\"Charge\""
+        case .shoot: return "\"Shoot\""
+        case .steal: return "\"Steal\""
+        }
+    }
+
 }
