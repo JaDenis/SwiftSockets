@@ -114,7 +114,7 @@ struct JsonPlayer {
             "username": self.username,
             "charges": "\(self.charges)",
             "health": "\(self.health)",
-            "actionHistory": "\(self.actionHistory)"
+            "actionHistory": PlayerAction.encode(self.actionHistory)
             ])
 
         return json
