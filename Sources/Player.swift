@@ -30,7 +30,7 @@ struct Player {
         self.matchID = matchID
         self.socket = socket
         self.uuid = uuid
-        self.moveHistory = []
+        self.moveHistory = [.block, .charge, .shoot]
         // TODO: Placeholder
         self.health = 5
     }
