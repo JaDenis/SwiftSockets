@@ -17,11 +17,7 @@ struct Player {
 
     let socket: WebSocket
 
-    /// Convenience variable to calculate player charges.
-    var charges: Int {
-        // Placeholder.
-        return 1
-    }
+    let charges: Int
 
     let health: Int
 
@@ -33,6 +29,7 @@ struct Player {
         self.moveHistory = [.block, .charge, .shoot]
         // TODO: Placeholder
         self.health = 5
+        self.charges = 0
     }
 
     init(name: String,
@@ -47,11 +44,17 @@ struct Player {
             self.moveHistory = moveHistory
             // TODO: Placeholder
             self.health = 5
+            self.charges = 0
     }
 
-    // TODO: Fill this in later.
-    func calculateHealth(vsPlayer player: Player) -> Int {
-        return 5
+    private init(player: Player, health: Int? = nil, charges: Int? = nil) {
+        self.name = player.name
+        self.uuid = player.uuid
+        self.matchID = player.matchID
+        self.socket = player.socket
+        self.moveHistory = player.moveHistory
+        self.health = health ?? player.health
+        self.charges = charges ?? player.charges
     }
 
     static func decodeUUIDAndPlayerAction(fromJSON json: JSON) -> (Player.UUID, PlayerAction)?  {
@@ -80,6 +83,13 @@ struct Player {
         }
 
         return Player(name: playerName, matchID: matchName, uuid: uuid, socket: socket)
+    }
+
+    static func update(player: Player, health: Int? = nil, charges: Int? = nil) -> Player {
+        return self.init(player: player,
+                         health: health,
+                         charges: charges)
+
     }
 
     func add(playerAction: PlayerAction, socket: WebSocket) -> Player {

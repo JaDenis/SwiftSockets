@@ -34,9 +34,24 @@ struct GameModel {
         guard let player = self.getPlayer(with: uuid) else {
             fatalError()
         }
+        // Add an action to the player's move history.
         let updatedPlayer = player.add(playerAction: action, socket: socket)
-        self.update(players: [updatedPlayer])
+
+        // Calculate health for the other players. Assumes two players for now.
+        guard let players = self.getPlayers(in: updatedPlayer.matchID) else {
+            fatalError()
+        }
+
+        let (p1h, p2h, p1c, p2c) =
+            calculateHealthAndCharges(p1: players[0], p2: players[1])
+
+        let allUpdatedPlayers =
+            [Player.update(player: players[0], health: p1h, charges: p1c),
+             Player.update(player: players[1], health: p2h, charges: p2c)]
+
+        self.update(players: allUpdatedPlayers)
         return updatedPlayer
+
     }
 
     func getPlayer(with id: Player.UUID) -> Player? {
