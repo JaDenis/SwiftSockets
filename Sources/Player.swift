@@ -91,14 +91,6 @@ struct Player {
     }
 }
 
-//type alias Player =
-//    { uuid: String
-//        , username: String
-//        , charges: Int
-//        , health: Int
-//        , actionHistory: List PlayerAction
-//}
-
 struct JsonPlayer {
     let uuid: Player.UUID
     let username: String
