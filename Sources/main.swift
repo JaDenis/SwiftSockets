@@ -19,8 +19,6 @@ typealias MatchName = String
 
 var gameModel = GameModel()
 
-// TODO: Support multiple players.
-
 func send(updatedPlayer: Player, with gameModel: GameModel) {
     guard let players = gameModel.getPlayers(in: updatedPlayer.matchID) else {
         print("error sending \(updatedPlayer)")

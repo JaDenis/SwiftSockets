@@ -7,7 +7,11 @@ enum PlayerAction {
     case shoot
     case steal
     case reflect
+}
 
+// MARK: - JSON Processing
+
+extension PlayerAction {
     static func decode(fromStr str: String) -> PlayerAction? {
         switch str {
         case "Block": return .block
@@ -19,16 +23,6 @@ enum PlayerAction {
         }
     }
 
-    static func encode(_ actions: [PlayerAction]) -> String {
-        var str = "["
-        for action in actions {
-            str = str + PlayerAction.encode(action) + ","
-        }
-        str = String(str.characters.dropLast())
-        str = str + "]"
-        return str
-    }
-
     static func encode(_ action: PlayerAction) -> String {
         switch action {
         case .block: return "\"Block\""
@@ -37,6 +31,16 @@ enum PlayerAction {
         case .steal: return "\"Steal\""
         case .reflect: return "\"Reflect\""
         }
+    }
+
+    static func encode(_ actions: [PlayerAction]) -> String {
+        var str = "["
+        for action in actions {
+            str = str + PlayerAction.encode(action) + ","
+        }
+        str = String(str.characters.dropLast())
+        str = str + "]"
+        return str
     }
 
 }

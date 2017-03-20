@@ -1,7 +1,7 @@
 import Foundation
 
 extension String {
-
+    /// Generate a random string. Used to create player uuids.
     static func random(length: Int = 10) -> String {
         let base = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
         var randomString: String = ""
