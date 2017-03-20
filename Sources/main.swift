@@ -9,16 +9,18 @@ drop.get("hello") { request in
     return "Hello World!"
 }
 
-//typealias Username = String
-//typealias Payload = String
-//typealias Payloads = [Payload]
-//fileprivate var connections = [Username : Payloads]()
-
-
 typealias MatchName = String
 
+/// Singleton instance of the game model.
 var gameModel = GameModel()
 
+/**
+ Send updated model information to clients within the same match, starting with the most recently
+ updated player.
+ 
+ - parameter updatedPlayer: which player was most recently updated?
+ - parameter gameModel: singleton instance of game model used to maintain referential transparency.
+*/
 func send(updatedPlayer: Player, with gameModel: GameModel) {
     guard let players = gameModel.getPlayers(in: updatedPlayer.matchID) else {
         print("error sending \(updatedPlayer)")
@@ -59,7 +61,8 @@ drop.socket("ws") { req, ws in
 
             // If we receive a uuid and action, then add that action to the player's move history.
             if let (uuid, action) = Player.decodeUUIDAndPlayerAction(fromJSON: json) {
-                let updatedPlayer = gameModel.add(action: action, socket: ws, toPlayerWithUUID: uuid)
+                let updatedPlayer = gameModel
+                    .add(action: action, socket: ws, toPlayerWithUUID: uuid)
                 print("updatedPlayer: \(updatedPlayer)")
                 send(updatedPlayer: updatedPlayer, with: gameModel)
 
@@ -76,51 +79,13 @@ drop.socket("ws") { req, ws in
             print("there was an error.")
         }
 
+        // TODO: - Notify other clients in the same match when a user terminates their connection.
+        ws.onClose = { ws, code, reason, clean in
+            print("Closed: \(ws), \(code), \(reason), \(clean)")
+        }
+
         print("")
     }
 }
-
-
-
-
-// If a match with the same name already exists, then combine the two matches.
-//            if let existingMatch = matches[match.name] {
-//                matches[match.name] = try Match.combine(matches: [existingMatch, match])
-//            } else {
-//                matches[match.name] = match
-//            }
-//        } catch {
-//            // TODO: Process error messages and send back to client.
-//            print("unable to append matches")
-//        }
-//
-//        print("matches: \(matches)")
-
-
-
-// Save username and payload to a dictionary.
-//        if let username = json.object?["username"]?.string,
-//            let payload = json.object?["payload"]?.string {
-//
-//            // Save payload.
-//            if connections[username]?.append(payload) == nil {
-//                connections[username] = [payload]
-//            }
-//        }
-
-//        let outgoingJson = try JSON(node: [
-//            "username": "test",
-//            "message": "testing"
-//            ])
-//
-//        try ws.send(outgoingJson)
-//    }
-//
-//    ws.onClose = { ws, code, reason, clean in
-//        print("Closed: \(ws), \(code), \(reason), \(clean)")
-//    }
-//}
-
-// transform json to something usable -
 
 drop.run()

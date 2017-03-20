@@ -1,4 +1,2 @@
-public struct Strings {
-
-}
+public struct Strings {}
 
