@@ -57,5 +57,52 @@ struct GameModel {
     func getPlayer(with id: Player.UUID) -> Player? {
         return self.playerModels[id]
     }
+
+    /**
+     Calculate health and charges for two players based on their move history.
+     Output is `(p1Health, p2Health, p1Charge, p2Charge)`.
+     */
+    private func calculateHealthAndCharges(p1: Player, p2: Player) -> (Int, Int, Int, Int) {
+        let combinedHistory = Array(zip(p1.moveHistory, p2.moveHistory))
+        print("combined history: \(combinedHistory)")
+
+        let (sHealth, sCharges) = Player.startingStats
+
+        let healthAndCharges = combinedHistory
+            .reduce((sHealth, sHealth, sCharges, sCharges)) { (total, tup) in
+            // Determine charges and health for this round.
+                let (p1m, p2m) = tup
+                var (p1h, p2h, p1c, p2c) = total
+
+                if p1m == .charge && p2m != .steal { p1c += 1 }
+                if p1m == .charge && p2m == .steal { p2c += 1 }
+
+                if p2m == .charge && p1m != .steal { p2c += 1 }
+                if p2m == .charge && p1m == .steal { p1c += 1 }
+
+                if p1m == .shoot { p1c -= 1 }
+                if p2m == .shoot { p2c -= 1 }
+
+                if p1m == .shoot {
+                    if p2m == .reflect {
+                        p1h -= 1
+                    } else if p2m != .block && p2m != .shoot {
+                        p2h -= 1
+                    }
+                }
+
+                if p2m == .shoot {
+                    if p1m == .reflect {
+                        p2h -= 1
+                    } else if p1m != .block && p1m != .shoot {
+                        p1h -= 1
+                    }
+                }
+                
+                return (p1h, p2h, p1c, p2c)
+        }
+
+        return healthAndCharges
+    }
     
 }

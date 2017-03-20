@@ -20,46 +20,6 @@ typealias MatchName = String
 var gameModel = GameModel()
 
 // TODO: Support multiple players.
-/**
- Calculate health and charges for two players based on their collective move history.
- Output is `(p1Health, p2Health, p1Charge, p2Charge)`.
- */
-func calculateHealthAndCharges(p1: Player, p2: Player) -> (Int, Int, Int, Int) {
-    let combinedHistory = Array(zip(p1.moveHistory, p2.moveHistory))
-
-    let healthAndCharges = combinedHistory.reduce((0,0,0,0)) { (total, tup) in
-        // Determine charges and health for this round.
-        let (p1m, p2m) = tup
-        var (p1h, p2h, p1c, p2c) = total
-
-        if p1m == .charge && p2m != .steal { p1c += 1 }
-        if p2m == .charge && p1m != .steal { p2c += 1 }
-        if p1m == .shoot { p1c -= 1 }
-        if p2m == .shoot { p2c -= 1 }
-        if p1m == .charge && p2m == .steal { p2c += 1 }
-        if p1m == .steal && p2m == .charge { p1c += 1 }
-
-        if p1m == .shoot {
-            if p2m == .reflect {
-                p1h -= 1
-            } else if p2m != .block && p2m != .shoot {
-                p2h -= 1
-            }
-        }
-
-        if p2m == .shoot {
-            if p1m == .reflect {
-                p2h -= 1
-            } else if p1m != .block && p1m != .shoot {
-                p1h -= 1
-            }
-        }
-
-        return (p1h, p2h, p1c, p2c)
-    }
-
-    return healthAndCharges
-}
 
 func send(updatedPlayer: Player, with gameModel: GameModel) {
     guard let players = gameModel.getPlayers(in: updatedPlayer.matchID) else {
@@ -105,7 +65,7 @@ drop.socket("ws") { req, ws in
                 print("updatedPlayer: \(updatedPlayer)")
                 send(updatedPlayer: updatedPlayer, with: gameModel)
 
-                // If we don't receive a uuid, create a new player and add that to the match.
+                // If we don't receive a uuid, create a new player and add to the match.
             } else {
                 let newPlayer = try Player.initNewPlayer(fromJSON: json,
                                                          uuid: String.random(),
