@@ -5,6 +5,10 @@ import JSON
 /// Player is a reference type with value semantics.
 struct Player {
     typealias UUID = String
+
+    /// A Player's starting (health, charges)
+    static let startingStats = (5, 0)
+
     /// What is the player's name?
     let name: String
 
@@ -26,7 +30,7 @@ struct Player {
         self.matchID = matchID
         self.socket = socket
         self.uuid = uuid
-        self.moveHistory = [.block, .charge, .shoot]
+        self.moveHistory = []
         self.health = 5
         self.charges = 0
     }
@@ -83,6 +87,7 @@ struct Player {
         return Player(name: playerName, matchID: matchName, uuid: uuid, socket: socket)
     }
 
+    /// Returns an updated player model with the specified health and charges.
     static func update(player: Player, health: Int? = nil, charges: Int? = nil) -> Player {
         return self.init(player: player,
                          health: health,
