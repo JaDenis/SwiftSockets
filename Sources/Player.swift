@@ -27,7 +27,6 @@ struct Player {
         self.socket = socket
         self.uuid = uuid
         self.moveHistory = [.block, .charge, .shoot]
-        // TODO: Placeholder
         self.health = 5
         self.charges = 0
     }
@@ -42,7 +41,6 @@ struct Player {
             self.matchID = matchID
             self.socket = socket
             self.moveHistory = moveHistory
-            // TODO: Placeholder
             self.health = 5
             self.charges = 0
     }
@@ -58,8 +56,8 @@ struct Player {
     }
 
     static func decodeUUIDAndPlayerAction(fromJSON json: JSON) -> (Player.UUID, PlayerAction)?  {
-        guard let uuid = json.decode(key: Strings.playerUUIDKey),
-            let str = json.decode(key: Strings.playerActionKey),
+        guard let uuid = json.decode(key: Strings.jPlayer.uuidKey),
+            let str = json.decode(key: Strings.jPlayer.playerActionKey),
             let action = PlayerAction.decode(fromStr: str) else {
                 return nil
         }
@@ -77,8 +75,8 @@ struct Player {
     /// Decode a new player from JSON.
     static func initNewPlayer(fromJSON json: JSON, uuid: Player.UUID, socket: WebSocket) throws -> Player {
         // Decode player and match name. These fields will be attached to every request.
-        guard let playerName = json.decode(key: Strings.usernameKey),
-            let matchName = json.decode(key: Strings.matchNameKey) else {
+        guard let playerName = json.decode(key: Strings.jPlayer.usernameKey),
+            let matchName = json.decode(key: Strings.jPlayer.matchNameKey) else {
                 throw PlayerError.invalidUsernameOrMatchName
         }
 
@@ -109,18 +107,31 @@ struct JsonPlayer {
     let actionHistory: [PlayerAction]
 
     func encodeToJson() -> JSON {
-//        JSON(["uuid": Node(self.uuid)])
 
         let json = try! JSON(node: [
-            "uuid": self.uuid,
-            "username": self.username,
-            "charges": "\(self.charges)",
-            "health": "\(self.health)",
-            "actionHistory": PlayerAction.encode(self.actionHistory)
+            Strings.jPlayer.uuidKey: self.uuid,
+            Strings.jPlayer.usernameKey: self.username,
+            Strings.jPlayer.chargesKey: "\(self.charges)",
+            Strings.jPlayer.healthKey: "\(self.health)",
+            Strings.jPlayer.actionHistoryKey: PlayerAction.encode(self.actionHistory)
             ])
 
         return json
     }
+}
+
+extension Strings {
+    struct jPlayer {
+        static let uuidKey = "uuid"
+        static let usernameKey = "username"
+        static let chargesKey = "charges"
+        static let healthKey = "health"
+        static let actionHistoryKey = "actionHistory"
+        static let matchNameKey = "matchName"
+        static let playerActionKey = "playerAction"
+    }
+
+
 }
 
 public enum PlayerError: Error {
@@ -128,12 +139,4 @@ public enum PlayerError: Error {
     case matchCombineError
     case invalidTurnNumber
     case invalidUsernameOrMatchName
-}
-
-// TODO: Delete this shit.
-public enum MatchError: Error {
-    case jsonInvalidKeys
-    case matchCombineError
-    case invalidTurnNumber
-    case invalidUsername
 }
